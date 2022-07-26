@@ -109,6 +109,8 @@ func processCronEvent(token string, e *ActionEvent) ([]int, error) {
 func ProcessEvent(event *ActionEvent) ([]int, error) {
 	// These events do not have an equivalent in the GitHub webhooks, thus
 	// parsing them with github.ParseWebhook would return an error.
+	// These are the webhook events: https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads
+	// And these are the "workflow events": https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
 	switch *event.EventName {
 	case "schedule":
 		return processCronEvent(*event.Token, event)
