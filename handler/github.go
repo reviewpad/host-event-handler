@@ -72,7 +72,8 @@ func ParseNumPages(resp *github.Response) int {
 	return ParseNumPagesFromLink(link)
 }
 
-func GetPullRequests(ctx context.Context, client *github.Client, owner string, repo string, opts *github.ListOptions) ([]*github.PullRequest, error) {
+// GetPullRequests fetches all of the open pull requests from the specified repository.
+func GetPullRequests(ctx context.Context, client *github.Client, owner string, repo string) ([]*github.PullRequest, error) {
 	prs, err := PaginatedRequest(
 		func() interface{} {
 			return []*github.PullRequest{}
