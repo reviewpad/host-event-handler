@@ -1,0 +1,17 @@
+name: Reviewpad
+
+on:
+  pull_request_target:
+  workflow_run:
+    workflows: ["Pull Request Build"]
+    types:
+      - completed
+
+jobs:
+  reviewpad:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reviewpad
+        uses: reviewpad/action@v3.x
+        with:
+          token: ${{ secrets.REVIEWPAD_TOKEN }}

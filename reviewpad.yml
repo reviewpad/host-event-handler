@@ -1,0 +1,241 @@
+api-version: reviewpad.com/v2.x
+
+mode: silent
+edition: professional
+
+labels:
+  small:
+    description: Small changes
+    # color is the hexadecimal color code for the label, without the leading #.
+    color: "294b69"
+  medium:
+    description: Medium changes
+    color: "a8c3f7"
+  large:
+    description: Large changes
+    color: "8a2138"
+  external-contribution:
+    description: External contribution
+    color: "8a2151"
+  critical:
+    description: Modifications to critical changes
+    color: "294b75"
+  ship:
+    description: Ship mode
+    color: "76dbbe"
+
+groups:
+  - name: owners
+    description: Group of owners
+    kind: developers
+    spec: '["marcelosousa", "ferreiratiago"]'
+
+  - name: plugins-reviewers
+    description: Group of plugin reviewers
+    kind: developers
+    spec: '["marcelosousa", "ferreiratiago", "shay2025"]'
+
+  - name: maintainers
+    description: Official maintainers
+    kind: developers
+    spec: '["marcelosousa", "ferreiratiago"]'
+
+  - name: rising-stars
+    description: Rising stars in the team
+    kind: developers
+    spec: '["shay2025"]'
+  
+  - name: official-contributors
+    description: Reviewpad core contributors
+    kind: developers
+    spec: '$append($group("maintainers"), $group("rising-stars"))'
+
+rules:
+  - name: tautology
+    kind: patch
+    description: always true
+    spec: 'true'
+
+  - name: is-small
+    kind: patch
+    description: small pull request
+    spec: $size() <= 30
+
+  - name: is-medium
+    kind: patch
+    description: medium-sized pull request
+    spec: $size() > 30 && $size() <= 100
+
+  - name: is-large
+    kind: patch
+    description: large-sized pull request
+    spec: $size() > 100
+
+  - name: changes-are-in-markdown
+    kind: patch
+    description: Verifies if changes are only in markdown files
+    spec: '$hasFileExtensions([".md"])'
+
+  - name: changes-should-be-built
+    kind: patch
+    description: Verifies if changes are not only in markdown files
+    spec: '!$rule("changes-are-in-markdown")'
+
+  - name: ci-is-green
+    kind: patch
+    description: Pipeline is green
+    spec: '$workflowStatus("pr-build") == "success" && $workflowStatus("reviewpad") == "success"'
+
+  - name: shipPullRequestsAreAutomerged
+    kind: patch
+    description: owners of pull requests with ship in the title
+    spec: '$contains($title(), "[ship]: ") && $isElementOf($author(), $group("owners")) && $rule("ci-is-green")'
+
+  - name: shipSimplePullRequests
+    kind: patch
+    description: owners can ship simple pull requests
+    spec: '$contains($title(), "[ship]: ") && $isElementOf($author(), $group("owners")) && $rule("changes-are-in-markdown")'
+
+  - name: is-first-time-contributor
+    kind: patch
+    description: First pull request created
+    spec: '$totalCreatedPullRequests($author()) == 1'
+
+  - name: touchesLicense
+    kind: patch
+    description: modifies the LICENSE file
+    spec: '$hasFileName("LICENSE")'
+
+  - name: touchesMoreThanLicense
+    kind: patch
+    description: modifies the LICENSE file and other files
+    spec: '$rule("touchesLicense") && $fileCount() > 1'
+
+  - name: touchesLicenseByNonOwner
+    kind: patch
+    description: non-owner modifies the LICENSE file
+    spec: '$rule("touchesLicense") && !$isElementOf($author(), $group("owners"))'
+
+  - name: changes-critical-functions
+    kind: patch
+    description: Changes to functions considered critical
+    # This spec uses a special built-in that understand which functions were commented
+    # with "reviewpad-an: critical"
+    spec: '$hasAnnotation("critical")'
+
+  - name: changes-to-main-file
+    description: Changes to the main file
+    kind: patch
+    spec: '$hasFileName("main.go")'
+
+  - name: does-not-have-linear-history
+    kind: patch
+    description: Pull request does not have a linear history
+    spec: '!$hasLinearHistory()'
+
+  - name: authored-by-rising-stars
+    kind: patch
+    description: Pull request was authored by rising stars
+    spec: '$isElementOf($author(), $group("rising-stars"))'
+
+  - name: authored-by-maintainers
+    kind: patch
+    description: Pull request was authored by maintainers
+    spec: '$isElementOf($author(), $group("maintainers"))'
+
+  - name: authored-by-external-contributors
+    kind: patch
+    description: Pull request was authored by external contributors
+    spec: '!$isElementOf($author(), $group("official-contributors"))'
+
+workflows:
+  - name: add-label-with-size
+    description: Add label with size of the pull request
+    always-run: true
+    if:
+      - rule: is-small
+        extra-actions:
+          - '$addLabel("small")'
+      - rule: is-medium
+        extra-actions:
+          - '$addLabel("medium")'
+      - rule: is-large
+        extra-actions:
+          - '$addLabel("large")'
+
+  - name: lint-commits
+    description: Lint commits
+    always-run: true
+    if:
+      - rule: does-not-have-linear-history
+        extra-actions:
+          - '$warn("This pull request does not have linear history - please fix this!")'
+      - rule: tautology
+        extra-actions:
+          - '$commitLint()'
+
+  - name: unauthorized-license-workflow
+    description: Protect unauthorized modifications to the LICENSE
+    if:
+      - rule: touchesLicenseByNonOwner
+    then:
+      - '$error("Sorry, you are not authorized to make these changes")'
+      - '$close()'
+
+  - name: license-workflow
+    description: Protect modifications to the LICENSE
+    if:
+      - rule: touchesLicense
+      - rule: touchesMoreThanLicense
+        extra-actions:
+          - '$warn("This pull request should only modify the LICENSE!")'
+    then:
+      - '$addLabel("modifies-license")'
+      - '$assignReviewer($group("owners"), 1)'
+
+  - name: add-label-for-build
+    description: Add label to kick in the build
+    always-run: true
+    if:
+      - rule: changes-should-be-built
+    then:
+      - '$addLabel("run-build")'
+
+  - name: auto-merge-owner-pull-requests
+    description: auto merge pull requests
+    if:
+      - rule: shipPullRequestsAreAutomerged
+      - rule: shipSimplePullRequests
+    then:
+      - '$addLabel("ship")'
+      - '$merge("rebase")'
+
+  - name: changes-to-critical-code
+    description: changes to critical code
+    always-run: true
+    if:
+      - rule: changes-critical-functions
+      - rule: changes-to-main-file
+    then:
+      - '$addLabel("critical")'
+      - '$assignReviewer($group("owners"), 1)'
+      - '$info("@marcelosousa: you are being notified because critical code was modified")'
+
+  - name: default-review-process
+    description: default review process
+    # only runs if the pull request is not automatically merged
+    if:
+      - rule: is-first-time-contributor
+        extra-actions:
+          - '$commentOnce("Thank you so much for your first contribution!")'
+      - rule: authored-by-rising-stars
+        extra-actions:
+          - '$assignReviewer($group("maintainers"))'
+      - rule: authored-by-maintainers
+        extra-actions:
+          - '$assignReviewer($group("maintainers"), 1)'
+          - '$assignReviewer($group("rising-stars"), 1)'
+      - rule: authored-by-external-contributors
+        extra-actions:
+          - '$addLabel("external-contribution")'
+          - '$assignReviewer($group("maintainers"), 1)'
