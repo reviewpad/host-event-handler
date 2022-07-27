@@ -7,7 +7,9 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"fmt"
+	"strings"
+	"time"
 
 	"github.com/google/go-github/v42/github"
 	"golang.org/x/oauth2"
@@ -27,19 +29,23 @@ func ParseEvent(rawEvent string) (*ActionEvent, error) {
 	return event, nil
 }
 
+func newGithubClient(ctx context.Context, token string) *github.Client {
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+	tc := oauth2.NewClient(ctx, ts)
+	return github.NewClient(tc)
+}
+
 // processWorkflowRunEvent process GitHub "workflow_run" event.
 // For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run
-func processWorkflowRunEvent(e *github.WorkflowRunEvent, token string) []int {
+func processWorkflowRunEvent(e *github.WorkflowRunEvent, token string) ([]int, error) {
 	Log("processing 'workflow_run' event")
 
 	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
+	client := newGithubClient(ctx, token)
 
-	prs, err := GetPullRequests(ctx, client, *e.Repo.Owner.Login, *e.Repo.Name, nil)
+	prs, err := GetPullRequests(ctx, client, *e.Repo.Owner.Login, *e.Repo.Name)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("get pull requests: %w", err)
 	}
 
 	Log("fetched %v prs", len(prs))
@@ -47,13 +53,13 @@ func processWorkflowRunEvent(e *github.WorkflowRunEvent, token string) []int {
 	for _, pr := range prs {
 		if *pr.Head.SHA == *e.WorkflowRun.HeadSHA {
 			Log("found pr %v", *pr.Number)
-			return []int{*pr.Number}
+			return []int{*pr.Number}, nil
 		}
 	}
 
 	Log("no pr found with the head sha %v", *e.WorkflowRun.HeadSHA)
 
-	return []int{}
+	return []int{}, nil
 }
 
 // processPullRequestEvent process GitHub "pull_request" event.
@@ -74,11 +80,45 @@ func processPullRequestTargetEvent(e *github.PullRequestTargetEvent, token strin
 	return []int{*e.PullRequest.Number}
 }
 
+func processCronEvent(token string, e *ActionEvent) ([]int, error) {
+	Log("processing 'schedule' event")
+
+	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
+	defer canc()
+	client := newGithubClient(ctx, token)
+
+	repoParts := strings.SplitN(*e.Repository, "/", 2)
+	prs, err := GetPullRequests(ctx, client, repoParts[0], repoParts[1])
+	if err != nil {
+		return nil, fmt.Errorf("get pull requests: %w", err)
+	}
+
+	Log("fetched %d prs", len(prs))
+
+	nums := make([]int, 0, len(prs))
+	for _, pr := range prs {
+		nums = append(nums, *pr.Number)
+	}
+
+	Log("found prs %v", nums)
+
+	return nums, nil
+}
+
 // processEvent process the GitHub event and returns the list of pull requests that are affected by the event.
-func ProcessEvent(event *ActionEvent) []int {
+func ProcessEvent(event *ActionEvent) ([]int, error) {
+	// These events do not have an equivalent in the GitHub webhooks, thus
+	// parsing them with github.ParseWebhook would return an error.
+	// These are the webhook events: https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads
+	// And these are the "workflow events": https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
+	switch *event.EventName {
+	case "schedule":
+		return processCronEvent(*event.Token, event)
+	}
+
 	eventPayload, err := github.ParseWebHook(*event.EventName, *event.EventPayload)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("parse github webhook: %w", err)
 	}
 
 	switch payload := eventPayload.(type) {
@@ -87,10 +127,10 @@ func ProcessEvent(event *ActionEvent) []int {
 	case *github.WorkflowRunEvent:
 		return processWorkflowRunEvent(payload, *event.Token)
 	case *github.PullRequestEvent:
-		return processPullRequestEvent(payload, *event.Token)
+		return processPullRequestEvent(payload, *event.Token), nil
 	case *github.PullRequestTargetEvent:
-		return processPullRequestTargetEvent(payload, *event.Token)
+		return processPullRequestTargetEvent(payload, *event.Token), nil
 	}
 
-	return []int{}
+	return nil, fmt.Errorf("unknown event payload type: %T", eventPayload)
 }

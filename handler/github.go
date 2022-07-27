@@ -11,32 +11,11 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v42/github"
+	"github.com/reviewpad/reviewpad/v3/utils"
 	"github.com/tomnomnom/linkheader"
 )
 
 const maxPerPage int = 100
-
-func PaginatedRequest(
-	initFn func() interface{},
-	reqFn func(interface{}, int) (interface{}, *github.Response, error),
-) (interface{}, error) {
-	page := 1
-	results, resp, err := reqFn(initFn(), page)
-	if err != nil {
-		return nil, err
-	}
-
-	numPages := ParseNumPages(resp)
-	page++
-	for page <= numPages && resp.NextPage > page {
-		results, _, err = reqFn(results, page)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return results, nil
-}
 
 func ParseNumPagesFromLink(link string) int {
 	urlInfo := linkheader.Parse(link).FilterByRel("last")
@@ -72,8 +51,8 @@ func ParseNumPages(resp *github.Response) int {
 	return ParseNumPagesFromLink(link)
 }
 
-func GetPullRequests(ctx context.Context, client *github.Client, owner string, repo string, opts *github.ListOptions) ([]*github.PullRequest, error) {
-	prs, err := PaginatedRequest(
+func GetPullRequests(ctx context.Context, client *github.Client, owner string, repo string) ([]*github.PullRequest, error) {
+	prs, err := utils.PaginatedRequest(
 		func() interface{} {
 			return []*github.PullRequest{}
 		},
