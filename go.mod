@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/google/go-github/v42 v42.0.0
-	github.com/reviewpad/reviewpad/v3 v3.0.0
+	github.com/reviewpad/reviewpad/v3 v3.0.1-0.20220727174757-0d139f257c22
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
 	golang.org/x/oauth2 v0.0.0-20220718184931-c8730f7fcb92
 )

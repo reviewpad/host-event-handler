@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/v42/github"
+	"github.com/reviewpad/reviewpad/v3/utils"
 	"golang.org/x/oauth2"
 )
 
@@ -40,10 +41,11 @@ func newGithubClient(ctx context.Context, token string) *github.Client {
 func processWorkflowRunEvent(e *github.WorkflowRunEvent, token string) ([]int, error) {
 	Log("processing 'workflow_run' event")
 
-	ctx := context.Background()
+	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
+	defer canc()
 	client := newGithubClient(ctx, token)
 
-	prs, err := GetPullRequests(ctx, client, *e.Repo.Owner.Login, *e.Repo.Name)
+	prs, err := utils.GetPullRequests(ctx, client, *e.Repo.Owner.Login, *e.Repo.Name)
 	if err != nil {
 		return nil, fmt.Errorf("get pull requests: %w", err)
 	}
@@ -88,7 +90,7 @@ func processCronEvent(token string, e *ActionEvent) ([]int, error) {
 	client := newGithubClient(ctx, token)
 
 	repoParts := strings.SplitN(*e.Repository, "/", 2)
-	prs, err := GetPullRequests(ctx, client, repoParts[0], repoParts[1])
+	prs, err := utils.GetPullRequests(ctx, client, repoParts[0], repoParts[1])
 	if err != nil {
 		return nil, fmt.Errorf("get pull requests: %w", err)
 	}
