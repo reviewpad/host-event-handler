@@ -5,7 +5,6 @@ go 1.18
 require (
 	github.com/google/go-github/v42 v42.0.0
 	github.com/jarcoal/httpmock v1.2.0
-	github.com/migueleliasweb/go-github-mock v0.0.10
 	github.com/reviewpad/reviewpad/v3 v3.0.1-0.20220727174757-0d139f257c22
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/oauth2 v0.0.0-20220718184931-c8730f7fcb92
@@ -19,6 +18,7 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
+	github.com/migueleliasweb/go-github-mock v0.0.10 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/shurcooL/githubv4 v0.0.0-20220520033151-0b4e3294ff00 // indirect
 	github.com/shurcooL/graphql v0.0.0-20220606043923-3cf50f8a0a29 // indirect
