@@ -82,6 +82,15 @@ func processPullRequestTargetEvent(e *github.PullRequestTargetEvent, token strin
 	return []int{*e.PullRequest.Number}
 }
 
+// processPullRequestReviewEvent process GitHub "pull_request_review" event.
+// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_review
+func processPullRequestReviewEvent(e *github.PullRequestReviewEvent, token string) []int {
+	Log("processing 'pull_request_review' event")
+	Log("found pr %v", *e.PullRequest.Number)
+
+	return []int{*e.PullRequest.Number}
+}
+
 func processCronEvent(token string, e *ActionEvent) ([]int, error) {
 	Log("processing 'schedule' event")
 
@@ -132,6 +141,8 @@ func ProcessEvent(event *ActionEvent) ([]int, error) {
 		return processPullRequestEvent(payload, *event.Token), nil
 	case *github.PullRequestTargetEvent:
 		return processPullRequestTargetEvent(payload, *event.Token), nil
+	case *github.PullRequestReviewEvent:
+		return processPullRequestReviewEvent(payload, *event.Token), nil
 	}
 
 	return nil, fmt.Errorf("unknown event payload type: %T", eventPayload)
