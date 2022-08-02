@@ -5,6 +5,16 @@
 version: "3"
 
 tasks:
+  format:
+    summary: |
+      Formats Go files.
+
+      Run with --watch or -w to watch for changes on Go files.
+    cmds:
+      - gofmt -s -w .
+    sources:
+      - ./**/*.go
+
   build:
     summary: |
       Builds Go files.
@@ -14,3 +24,26 @@ tasks:
       - go build {{.CLI_ARGS}}
     sources:
       - ./*.go
+
+  test:
+    summary: |
+      Runs unit tests with coverage
+
+      Run with --watch or -w to watch for changes on _test.go files.
+    cmds:
+      - gotestsum -- -coverprofile=coverage.out ./...
+    sources:
+      - ./**/*_test.go
+
+  coverage:
+    summary: Generates coverage report and opens it
+    deps:
+      - test
+    cmds:
+      - go tool cover -html=coverage.out
+
+  check:
+    deps:
+      - format
+      - build
+      - test
