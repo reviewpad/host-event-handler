@@ -35,7 +35,7 @@ func newGithubClient(ctx context.Context, token string) *github.Client {
 	return github.NewClient(tc)
 }
 
-func processWorkflowRunEvent(e *github.WorkflowRunEvent, token string) ([]int, error) {
+func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]int, error) {
 	Log("processing 'workflow_run' event")
 
 	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
@@ -135,7 +135,7 @@ func ProcessEvent(event *ActionEvent) ([]int, error) {
 	// Handle github events triggered by actions
 	// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
 	case *github.WorkflowRunEvent:
-		return processWorkflowRunEvent(payload, *event.Token)
+		return processWorkflowRunEvent(*event.Token, payload)
 	case *github.PullRequestEvent:
 		return processPullRequestEvent(payload), nil
 	case *github.PullRequestTargetEvent:
