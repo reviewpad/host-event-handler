@@ -235,6 +235,21 @@ func TestProcessEvent(t *testing.T) {
 			},
 			wantVal: []int{},
 		},
+		"issue_comment": {
+			event: &handler.ActionEvent{
+				EventName: github.String("issue_comment"),
+				Token:     github.String("test-token"),
+				EventPayload: buildPayload([]byte(`{
+					"action": "opened",
+					"number": 130,
+					"issue": {
+						"body": "## Description",
+						"number": 130
+					}
+				}`)),
+			},
+			wantVal: []int{130},
+		},
 	}
 
 	for name, test := range tests {

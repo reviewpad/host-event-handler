@@ -16,7 +16,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// ParseEvent parses GitHub raw event to ActionEvent
 func ParseEvent(rawEvent string) (*ActionEvent, error) {
 	event := &ActionEvent{}
 
@@ -36,9 +35,7 @@ func newGithubClient(ctx context.Context, token string) *github.Client {
 	return github.NewClient(tc)
 }
 
-// processWorkflowRunEvent process GitHub "workflow_run" event.
-// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run
-func processWorkflowRunEvent(e *github.WorkflowRunEvent, token string) ([]int, error) {
+func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]int, error) {
 	Log("processing 'workflow_run' event")
 
 	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
@@ -64,27 +61,21 @@ func processWorkflowRunEvent(e *github.WorkflowRunEvent, token string) ([]int, e
 	return []int{}, nil
 }
 
-// processPullRequestEvent process GitHub "pull_request" event.
-// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
-func processPullRequestEvent(e *github.PullRequestEvent, token string) []int {
+func processPullRequestEvent(e *github.PullRequestEvent) []int {
 	Log("processing 'pull_request' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
 	return []int{*e.PullRequest.Number}
 }
 
-// processPullRequestTargetEvent process GitHub "pull_request_target" event.
-// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target
-func processPullRequestTargetEvent(e *github.PullRequestTargetEvent, token string) []int {
+func processPullRequestTargetEvent(e *github.PullRequestTargetEvent) []int {
 	Log("processing 'pull_request_target' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
 	return []int{*e.PullRequest.Number}
 }
 
-// processPullRequestReviewEvent process GitHub "pull_request_review" event.
-// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_review
-func processPullRequestReviewEvent(e *github.PullRequestReviewEvent, token string) []int {
+func processPullRequestReviewEvent(e *github.PullRequestReviewEvent) []int {
 	Log("processing 'pull_request_review' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
@@ -116,7 +107,15 @@ func processCronEvent(token string, e *ActionEvent) ([]int, error) {
 	return nums, nil
 }
 
-// processEvent process the GitHub event and returns the list of pull requests that are affected by the event.
+func processIssueCommentEvent(e *github.IssueCommentEvent) []int {
+	Log("processing 'issue_comment' event")
+	Log("found issue %v", *e.Issue.Number)
+
+	return []int{*e.Issue.Number}
+}
+
+// reviewpad-an: critical
+// output: the list of pull requests/issues that are affected by the event.
 func ProcessEvent(event *ActionEvent) ([]int, error) {
 	// These events do not have an equivalent in the GitHub webhooks, thus
 	// parsing them with github.ParseWebhook would return an error.
@@ -136,13 +135,15 @@ func ProcessEvent(event *ActionEvent) ([]int, error) {
 	// Handle github events triggered by actions
 	// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
 	case *github.WorkflowRunEvent:
-		return processWorkflowRunEvent(payload, *event.Token)
+		return processWorkflowRunEvent(*event.Token, payload)
 	case *github.PullRequestEvent:
-		return processPullRequestEvent(payload, *event.Token), nil
+		return processPullRequestEvent(payload), nil
 	case *github.PullRequestTargetEvent:
-		return processPullRequestTargetEvent(payload, *event.Token), nil
+		return processPullRequestTargetEvent(payload), nil
 	case *github.PullRequestReviewEvent:
-		return processPullRequestReviewEvent(payload, *event.Token), nil
+		return processPullRequestReviewEvent(payload), nil
+	case *github.IssueCommentEvent:
+		return processIssueCommentEvent(payload), nil
 	}
 
 	return nil, fmt.Errorf("unknown event payload type: %T", eventPayload)
