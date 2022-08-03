@@ -61,7 +61,7 @@ func processCronEvent(token string, e *ActionEvent) ([]int, error) {
 }
 
 func processIssuesEvent(e *github.IssuesEvent) []int {
-	Log("processing 'issue' event")
+	Log("processing 'issues' event")
 	Log("found issue %v", *e.Issue.Number)
 
 	return []int{*e.Issue.Number}
@@ -83,6 +83,13 @@ func processPullRequestEvent(e *github.PullRequestEvent) []int {
 
 func processPullRequestReviewEvent(e *github.PullRequestReviewEvent) []int {
 	Log("processing 'pull_request_review' event")
+	Log("found pr %v", *e.PullRequest.Number)
+
+	return []int{*e.PullRequest.Number}
+}
+
+func processPullRequestReviewCommentEvent(e *github.PullRequestReviewCommentEvent) []int {
+	Log("processing 'pull_request_review_comment' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
 	return []int{*e.PullRequest.Number}
@@ -173,10 +180,12 @@ func ProcessEvent(event *ActionEvent) ([]int, error) {
 		return processIssueCommentEvent(payload), nil
 	case *github.PullRequestEvent:
 		return processPullRequestEvent(payload), nil
-	case *github.PullRequestTargetEvent:
-		return processPullRequestTargetEvent(payload), nil
 	case *github.PullRequestReviewEvent:
 		return processPullRequestReviewEvent(payload), nil
+	case *github.PullRequestReviewCommentEvent:
+		return processPullRequestReviewCommentEvent(payload), nil
+	case *github.PullRequestTargetEvent:
+		return processPullRequestTargetEvent(payload), nil
 	case *github.StatusEvent:
 		return processStatusEvent(*event.Token, payload)
 	case *github.WorkflowRunEvent:

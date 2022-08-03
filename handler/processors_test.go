@@ -206,6 +206,20 @@ func TestProcessEvent(t *testing.T) {
 			},
 			wantVal: []int{130},
 		},
+		"pull_request_review_comment": {
+			event: &handler.ActionEvent{
+				EventName: github.String("pull_request_review_comment"),
+				Token:     github.String("test-token"),
+				EventPayload: buildPayload([]byte(`{
+					"action": "created",
+					"pull_request": {
+						"body": "## Description",
+						"number": 130
+					}
+				}`)),
+			},
+			wantVal: []int{130},
+		},
 		"cron": {
 			event: &handler.ActionEvent{
 				EventName:  github.String("schedule"),
