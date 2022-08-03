@@ -16,7 +16,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// ParseEvent parses GitHub raw event to ActionEvent
 func ParseEvent(rawEvent string) (*ActionEvent, error) {
 	event := &ActionEvent{}
 
@@ -36,8 +35,6 @@ func newGithubClient(ctx context.Context, token string) *github.Client {
 	return github.NewClient(tc)
 }
 
-// processWorkflowRunEvent process GitHub "workflow_run" event.
-// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run
 func processWorkflowRunEvent(e *github.WorkflowRunEvent, token string) ([]int, error) {
 	Log("processing 'workflow_run' event")
 
@@ -64,8 +61,6 @@ func processWorkflowRunEvent(e *github.WorkflowRunEvent, token string) ([]int, e
 	return []int{}, nil
 }
 
-// processPullRequestEvent process GitHub "pull_request" event.
-// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
 func processPullRequestEvent(e *github.PullRequestEvent, token string) []int {
 	Log("processing 'pull_request' event")
 	Log("found pr %v", *e.PullRequest.Number)
@@ -73,8 +68,6 @@ func processPullRequestEvent(e *github.PullRequestEvent, token string) []int {
 	return []int{*e.PullRequest.Number}
 }
 
-// processPullRequestTargetEvent process GitHub "pull_request_target" event.
-// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target
 func processPullRequestTargetEvent(e *github.PullRequestTargetEvent, token string) []int {
 	Log("processing 'pull_request_target' event")
 	Log("found pr %v", *e.PullRequest.Number)
@@ -82,8 +75,6 @@ func processPullRequestTargetEvent(e *github.PullRequestTargetEvent, token strin
 	return []int{*e.PullRequest.Number}
 }
 
-// processPullRequestReviewEvent process GitHub "pull_request_review" event.
-// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_review
 func processPullRequestReviewEvent(e *github.PullRequestReviewEvent, token string) []int {
 	Log("processing 'pull_request_review' event")
 	Log("found pr %v", *e.PullRequest.Number)
@@ -116,7 +107,8 @@ func processCronEvent(token string, e *ActionEvent) ([]int, error) {
 	return nums, nil
 }
 
-// processEvent process the GitHub event and returns the list of pull requests that are affected by the event.
+// reviewpad-an: critical
+// output: the list of pull requests/issues that are affected by the event.
 func ProcessEvent(event *ActionEvent) ([]int, error) {
 	// These events do not have an equivalent in the GitHub webhooks, thus
 	// parsing them with github.ParseWebhook would return an error.
