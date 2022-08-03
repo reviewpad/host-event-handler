@@ -60,6 +60,13 @@ func processCronEvent(token string, e *ActionEvent) ([]int, error) {
 	return nums, nil
 }
 
+func processIssuesEvent(e *github.IssuesEvent) []int {
+	Log("processing 'issue' event")
+	Log("found issue %v", *e.Issue.Number)
+
+	return []int{*e.Issue.Number}
+}
+
 func processIssueCommentEvent(e *github.IssueCommentEvent) []int {
 	Log("processing 'issue_comment' event")
 	Log("found issue %v", *e.Issue.Number)
@@ -160,6 +167,8 @@ func ProcessEvent(event *ActionEvent) ([]int, error) {
 	switch payload := eventPayload.(type) {
 	// Handle github events triggered by actions
 	// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
+	case *github.IssuesEvent:
+		return processIssuesEvent(payload), nil
 	case *github.IssueCommentEvent:
 		return processIssueCommentEvent(payload), nil
 	case *github.PullRequestEvent:
