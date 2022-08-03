@@ -3,9 +3,9 @@ module github.com/reviewpad/host-event-handler
 go 1.18
 
 require (
-	github.com/google/go-github/v42 v42.0.0
+	github.com/google/go-github/v45 v45.2.0
 	github.com/jarcoal/httpmock v1.2.0
-	github.com/reviewpad/reviewpad/v3 v3.0.1-0.20220727174757-0d139f257c22
+	github.com/reviewpad/reviewpad/v3 v3.1.1-0.20220803072158-38393671ef5b
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/oauth2 v0.0.0-20220718184931-c8730f7fcb92
 )
