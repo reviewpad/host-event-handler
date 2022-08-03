@@ -107,6 +107,13 @@ func processCronEvent(token string, e *ActionEvent) ([]int, error) {
 	return nums, nil
 }
 
+func processIssueCommentEvent(e *github.IssueCommentEvent) []int {
+	Log("processing 'issue_comment' event")
+	Log("found issue %v", *e.Issue.Number)
+
+	return []int{*e.Issue.Number}
+}
+
 // reviewpad-an: critical
 // output: the list of pull requests/issues that are affected by the event.
 func ProcessEvent(event *ActionEvent) ([]int, error) {
@@ -135,6 +142,8 @@ func ProcessEvent(event *ActionEvent) ([]int, error) {
 		return processPullRequestTargetEvent(payload), nil
 	case *github.PullRequestReviewEvent:
 		return processPullRequestReviewEvent(payload), nil
+	case *github.IssueCommentEvent:
+		return processIssueCommentEvent(payload), nil
 	}
 
 	return nil, fmt.Errorf("unknown event payload type: %T", eventPayload)
