@@ -61,21 +61,21 @@ func processWorkflowRunEvent(e *github.WorkflowRunEvent, token string) ([]int, e
 	return []int{}, nil
 }
 
-func processPullRequestEvent(e *github.PullRequestEvent, token string) []int {
+func processPullRequestEvent(e *github.PullRequestEvent) []int {
 	Log("processing 'pull_request' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
 	return []int{*e.PullRequest.Number}
 }
 
-func processPullRequestTargetEvent(e *github.PullRequestTargetEvent, token string) []int {
+func processPullRequestTargetEvent(e *github.PullRequestTargetEvent) []int {
 	Log("processing 'pull_request_target' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
 	return []int{*e.PullRequest.Number}
 }
 
-func processPullRequestReviewEvent(e *github.PullRequestReviewEvent, token string) []int {
+func processPullRequestReviewEvent(e *github.PullRequestReviewEvent) []int {
 	Log("processing 'pull_request_review' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
@@ -130,11 +130,11 @@ func ProcessEvent(event *ActionEvent) ([]int, error) {
 	case *github.WorkflowRunEvent:
 		return processWorkflowRunEvent(payload, *event.Token)
 	case *github.PullRequestEvent:
-		return processPullRequestEvent(payload, *event.Token), nil
+		return processPullRequestEvent(payload), nil
 	case *github.PullRequestTargetEvent:
-		return processPullRequestTargetEvent(payload, *event.Token), nil
+		return processPullRequestTargetEvent(payload), nil
 	case *github.PullRequestReviewEvent:
-		return processPullRequestReviewEvent(payload, *event.Token), nil
+		return processPullRequestReviewEvent(payload), nil
 	}
 
 	return nil, fmt.Errorf("unknown event payload type: %T", eventPayload)
