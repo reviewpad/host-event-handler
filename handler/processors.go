@@ -35,53 +35,6 @@ func newGithubClient(ctx context.Context, token string) *github.Client {
 	return github.NewClient(tc)
 }
 
-func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]int, error) {
-	Log("processing 'workflow_run' event")
-
-	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
-	defer canc()
-	client := newGithubClient(ctx, token)
-
-	prs, err := utils.GetPullRequests(ctx, client, *e.Repo.Owner.Login, *e.Repo.Name)
-	if err != nil {
-		return nil, fmt.Errorf("get pull requests: %w", err)
-	}
-
-	Log("fetched %v prs", len(prs))
-
-	for _, pr := range prs {
-		if *pr.Head.SHA == *e.WorkflowRun.HeadSHA {
-			Log("found pr %v", *pr.Number)
-			return []int{*pr.Number}, nil
-		}
-	}
-
-	Log("no pr found with the head sha %v", *e.WorkflowRun.HeadSHA)
-
-	return []int{}, nil
-}
-
-func processPullRequestEvent(e *github.PullRequestEvent) []int {
-	Log("processing 'pull_request' event")
-	Log("found pr %v", *e.PullRequest.Number)
-
-	return []int{*e.PullRequest.Number}
-}
-
-func processPullRequestTargetEvent(e *github.PullRequestTargetEvent) []int {
-	Log("processing 'pull_request_target' event")
-	Log("found pr %v", *e.PullRequest.Number)
-
-	return []int{*e.PullRequest.Number}
-}
-
-func processPullRequestReviewEvent(e *github.PullRequestReviewEvent) []int {
-	Log("processing 'pull_request_review' event")
-	Log("found pr %v", *e.PullRequest.Number)
-
-	return []int{*e.PullRequest.Number}
-}
-
 func processCronEvent(token string, e *ActionEvent) ([]int, error) {
 	Log("processing 'schedule' event")
 
@@ -114,6 +67,79 @@ func processIssueCommentEvent(e *github.IssueCommentEvent) []int {
 	return []int{*e.Issue.Number}
 }
 
+func processPullRequestEvent(e *github.PullRequestEvent) []int {
+	Log("processing 'pull_request' event")
+	Log("found pr %v", *e.PullRequest.Number)
+
+	return []int{*e.PullRequest.Number}
+}
+
+func processPullRequestReviewEvent(e *github.PullRequestReviewEvent) []int {
+	Log("processing 'pull_request_review' event")
+	Log("found pr %v", *e.PullRequest.Number)
+
+	return []int{*e.PullRequest.Number}
+}
+
+func processPullRequestTargetEvent(e *github.PullRequestTargetEvent) []int {
+	Log("processing 'pull_request_target' event")
+	Log("found pr %v", *e.PullRequest.Number)
+
+	return []int{*e.PullRequest.Number}
+}
+
+func processStatusEvent(token string, e *github.StatusEvent) ([]int, error) {
+	Log("processing 'status' event")
+
+	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
+	defer canc()
+	client := newGithubClient(ctx, token)
+
+	prs, err := utils.GetPullRequests(ctx, client, *e.Repo.Owner.Login, *e.Repo.Name)
+	if err != nil {
+		return nil, fmt.Errorf("get pull requests: %w", err)
+	}
+
+	Log("fetched %v prs", len(prs))
+
+	for _, pr := range prs {
+		if *pr.Head.SHA == *e.SHA {
+			Log("found pr %v", *pr.Number)
+			return []int{*pr.Number}, nil
+		}
+	}
+
+	Log("no pr found with the head sha %v", *e.SHA)
+
+	return []int{}, nil
+}
+
+func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]int, error) {
+	Log("processing 'workflow_run' event")
+
+	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
+	defer canc()
+	client := newGithubClient(ctx, token)
+
+	prs, err := utils.GetPullRequests(ctx, client, *e.Repo.Owner.Login, *e.Repo.Name)
+	if err != nil {
+		return nil, fmt.Errorf("get pull requests: %w", err)
+	}
+
+	Log("fetched %v prs", len(prs))
+
+	for _, pr := range prs {
+		if *pr.Head.SHA == *e.WorkflowRun.HeadSHA {
+			Log("found pr %v", *pr.Number)
+			return []int{*pr.Number}, nil
+		}
+	}
+
+	Log("no pr found with the head sha %v", *e.WorkflowRun.HeadSHA)
+
+	return []int{}, nil
+}
+
 // reviewpad-an: critical
 // output: the list of pull requests/issues that are affected by the event.
 func ProcessEvent(event *ActionEvent) ([]int, error) {
@@ -134,16 +160,18 @@ func ProcessEvent(event *ActionEvent) ([]int, error) {
 	switch payload := eventPayload.(type) {
 	// Handle github events triggered by actions
 	// For more information, visit: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
-	case *github.WorkflowRunEvent:
-		return processWorkflowRunEvent(*event.Token, payload)
+	case *github.IssueCommentEvent:
+		return processIssueCommentEvent(payload), nil
 	case *github.PullRequestEvent:
 		return processPullRequestEvent(payload), nil
 	case *github.PullRequestTargetEvent:
 		return processPullRequestTargetEvent(payload), nil
 	case *github.PullRequestReviewEvent:
 		return processPullRequestReviewEvent(payload), nil
-	case *github.IssueCommentEvent:
-		return processIssueCommentEvent(payload), nil
+	case *github.StatusEvent:
+		return processStatusEvent(*event.Token, payload)
+	case *github.WorkflowRunEvent:
+		return processWorkflowRunEvent(*event.Token, payload)
 	}
 
 	return nil, fmt.Errorf("unknown event payload type: %T", eventPayload)

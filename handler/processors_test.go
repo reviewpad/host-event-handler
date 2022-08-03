@@ -96,6 +96,23 @@ func TestProcessEvent_Failure(t *testing.T) {
 				}`)),
 			},
 		},
+		"status": {
+			event: &handler.ActionEvent{
+				EventName: github.String("status"),
+				Token:     github.String("test-token"),
+				EventPayload: buildPayload([]byte(`{
+					"repository": {
+						"name": "reviewpad",
+						"owner": {
+							"login": "reviewpad"
+						}
+					},
+					"status": {
+						"sha": "4bf24cc72f3a62423927a0ac8d70febad7c78e0g"
+					}
+				}`)),
+			},
+		},
 	}
 
 	for name, test := range tests {
@@ -249,6 +266,38 @@ func TestProcessEvent(t *testing.T) {
 				}`)),
 			},
 			wantVal: []int{130},
+		},
+		"status_match": {
+			event: &handler.ActionEvent{
+				EventName: github.String("status"),
+				Token:     github.String("test-token"),
+				EventPayload: buildPayload([]byte(`{
+					"repository": {
+						"name": "reviewpad",
+						"owner": {
+							"login": "reviewpad"
+						}
+					},
+					"sha": "4bf24cc72f3a62423927a0ac8d70febad7c78e0g"
+				}`)),
+			},
+			wantVal: []int{aladino.DefaultMockPrNum},
+		},
+		"status_no_match": {
+			event: &handler.ActionEvent{
+				EventName: github.String("status"),
+				Token:     github.String("test-token"),
+				EventPayload: buildPayload([]byte(`{
+					"repository": {
+						"name": "reviewpad",
+						"owner": {
+							"login": "reviewpad"
+						}
+					},
+					"sha": "4bf24cc72f3a62423927a0ac8d70febad7c78e0a"
+				}`)),
+			},
+			wantVal: []int{},
 		},
 	}
 
