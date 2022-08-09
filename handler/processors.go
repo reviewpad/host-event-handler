@@ -16,6 +16,18 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	PullRequest EventKind = "pull_request"
+	Issue       EventKind = "issue"
+)
+
+type EventKind string
+
+type EventInfo struct {
+	Kind   EventKind
+	Number int
+}
+
 func ParseEvent(rawEvent string) (*ActionEvent, error) {
 	event := &ActionEvent{}
 
@@ -35,7 +47,7 @@ func newGithubClient(ctx context.Context, token string) *github.Client {
 	return github.NewClient(tc)
 }
 
-func processCronEvent(token string, e *ActionEvent) ([]int, error) {
+func processCronEvent(token string, e *ActionEvent) ([]*EventInfo, error) {
 	Log("processing 'schedule' event")
 
 	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
@@ -50,59 +62,92 @@ func processCronEvent(token string, e *ActionEvent) ([]int, error) {
 
 	Log("fetched %d prs", len(prs))
 
-	nums := make([]int, 0, len(prs))
+	events := make([]*EventInfo, 0)
 	for _, pr := range prs {
-		nums = append(nums, *pr.Number)
+		events = append(events, &EventInfo{
+			Kind:   PullRequest,
+			Number: *pr.Number,
+		})
 	}
 
-	Log("found prs %v", nums)
+	Log("found events %v", events)
 
-	return nums, nil
+	return events, nil
 }
 
-func processIssuesEvent(e *github.IssuesEvent) []int {
+func processIssuesEvent(e *github.IssuesEvent) []*EventInfo {
 	Log("processing 'issues' event")
 	Log("found issue %v", *e.Issue.Number)
 
-	return []int{*e.Issue.Number}
+	return []*EventInfo{
+		{
+			Kind:   Issue,
+			Number: *e.Issue.Number,
+		},
+	}
 }
 
-func processIssueCommentEvent(e *github.IssueCommentEvent) []int {
+func processIssueCommentEvent(e *github.IssueCommentEvent) []*EventInfo {
 	Log("processing 'issue_comment' event")
 	Log("found issue %v", *e.Issue.Number)
 
-	return []int{*e.Issue.Number}
+	return []*EventInfo{
+		{
+			Kind:   Issue,
+			Number: *e.Issue.Number,
+		},
+	}
 }
 
-func processPullRequestEvent(e *github.PullRequestEvent) []int {
+func processPullRequestEvent(e *github.PullRequestEvent) []*EventInfo {
 	Log("processing 'pull_request' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
-	return []int{*e.PullRequest.Number}
+	return []*EventInfo{
+		{
+			Kind:   PullRequest,
+			Number: *e.PullRequest.Number,
+		},
+	}
 }
 
-func processPullRequestReviewEvent(e *github.PullRequestReviewEvent) []int {
+func processPullRequestReviewEvent(e *github.PullRequestReviewEvent) []*EventInfo {
 	Log("processing 'pull_request_review' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
-	return []int{*e.PullRequest.Number}
+	return []*EventInfo{
+		{
+			Kind:   PullRequest,
+			Number: *e.PullRequest.Number,
+		},
+	}
 }
 
-func processPullRequestReviewCommentEvent(e *github.PullRequestReviewCommentEvent) []int {
+func processPullRequestReviewCommentEvent(e *github.PullRequestReviewCommentEvent) []*EventInfo {
 	Log("processing 'pull_request_review_comment' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
-	return []int{*e.PullRequest.Number}
+	return []*EventInfo{
+		{
+			Kind:   PullRequest,
+			Number: *e.PullRequest.Number,
+		},
+	}
 }
 
-func processPullRequestTargetEvent(e *github.PullRequestTargetEvent) []int {
+func processPullRequestTargetEvent(e *github.PullRequestTargetEvent) []*EventInfo {
 	Log("processing 'pull_request_target' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
-	return []int{*e.PullRequest.Number}
+	return []*EventInfo{
+		{
+			Kind:   PullRequest,
+			Number: *e.PullRequest.Number,
+		},
+	}
 }
 
-func processStatusEvent(token string, e *github.StatusEvent) ([]int, error) {
+func processStatusEvent(token string, e *github.StatusEvent) ([]*EventInfo, error) {
 	Log("processing 'status' event")
 
 	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
@@ -119,16 +164,21 @@ func processStatusEvent(token string, e *github.StatusEvent) ([]int, error) {
 	for _, pr := range prs {
 		if *pr.Head.SHA == *e.SHA {
 			Log("found pr %v", *pr.Number)
-			return []int{*pr.Number}, nil
+			return []*EventInfo{
+				{
+					Kind:   PullRequest,
+					Number: *pr.Number,
+				},
+			}, nil
 		}
 	}
 
 	Log("no pr found with the head sha %v", *e.SHA)
 
-	return []int{}, nil
+	return []*EventInfo{}, nil
 }
 
-func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]int, error) {
+func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]*EventInfo, error) {
 	Log("processing 'workflow_run' event")
 
 	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
@@ -145,18 +195,23 @@ func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]int, e
 	for _, pr := range prs {
 		if *pr.Head.SHA == *e.WorkflowRun.HeadSHA {
 			Log("found pr %v", *pr.Number)
-			return []int{*pr.Number}, nil
+			return []*EventInfo{
+				{
+					Kind:   PullRequest,
+					Number: *pr.Number,
+				},
+			}, nil
 		}
 	}
 
 	Log("no pr found with the head sha %v", *e.WorkflowRun.HeadSHA)
 
-	return []int{}, nil
+	return []*EventInfo{}, nil
 }
 
 // reviewpad-an: critical
 // output: the list of pull requests/issues that are affected by the event.
-func ProcessEvent(event *ActionEvent) ([]int, error) {
+func ProcessEvent(event *ActionEvent) ([]*EventInfo, error) {
 	// These events do not have an equivalent in the GitHub webhooks, thus
 	// parsing them with github.ParseWebhook would return an error.
 	// These are the webhook events: https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads
