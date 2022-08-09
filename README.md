@@ -21,7 +21,7 @@ To be able to debug the please create a `launch.json` file under `.vscode` folde
                 "-github-token=GITHUB_TOKEN",
                 // File path to the event payload
                 // To know more about the event payload follow the link https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
-                "-event=FILE_PATH_TO_EVENT_PAYLOAD"
+                "-event-payload=FILE_PATH_TO_EVENT_PAYLOAD"
             ],
             "program": "${workspaceFolder}/cmd/cli/main.go"
         }
