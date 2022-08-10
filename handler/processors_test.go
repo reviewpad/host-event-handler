@@ -159,7 +159,7 @@ func TestProcessEvent(t *testing.T) {
 
 	tests := map[string]struct {
 		event   *handler.ActionEvent
-		wantVal []int
+		wantVal []*handler.EventInfo
 	}{
 		"pull_request": {
 			event: &handler.ActionEvent{
@@ -174,7 +174,12 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []int{130},
+			wantVal: []*handler.EventInfo{
+				{
+					Kind:   handler.PullRequest,
+					Number: 130,
+				},
+			},
 		},
 		"pull_request_target": {
 			event: &handler.ActionEvent{
@@ -189,7 +194,12 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []int{130},
+			wantVal: []*handler.EventInfo{
+				{
+					Kind:   handler.PullRequest,
+					Number: 130,
+				},
+			},
 		},
 		"pull_request_review": {
 			event: &handler.ActionEvent{
@@ -204,7 +214,12 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []int{130},
+			wantVal: []*handler.EventInfo{
+				{
+					Kind:   handler.PullRequest,
+					Number: 130,
+				},
+			},
 		},
 		"pull_request_review_comment": {
 			event: &handler.ActionEvent{
@@ -218,7 +233,12 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []int{130},
+			wantVal: []*handler.EventInfo{
+				{
+					Kind:   handler.PullRequest,
+					Number: 130,
+				},
+			},
 		},
 		"cron": {
 			event: &handler.ActionEvent{
@@ -226,7 +246,16 @@ func TestProcessEvent(t *testing.T) {
 				Token:      github.String("test-token"),
 				Repository: github.String("reviewpad/reviewpad"),
 			},
-			wantVal: []int{130, aladino.DefaultMockPrNum},
+			wantVal: []*handler.EventInfo{
+				{
+					Kind:   handler.PullRequest,
+					Number: 130,
+				},
+				{
+					Kind:   handler.PullRequest,
+					Number: aladino.DefaultMockPrNum,
+				},
+			},
 		},
 		"workflow_run_match": {
 			event: &handler.ActionEvent{
@@ -245,7 +274,12 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []int{aladino.DefaultMockPrNum},
+			wantVal: []*handler.EventInfo{
+				{
+					Kind:   handler.PullRequest,
+					Number: aladino.DefaultMockPrNum,
+				},
+			},
 		},
 		"workflow_run_no_match": {
 			event: &handler.ActionEvent{
@@ -264,7 +298,7 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []int{},
+			wantVal: []*handler.EventInfo{},
 		},
 		"issues": {
 			event: &handler.ActionEvent{
@@ -279,7 +313,12 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []int{130},
+			wantVal: []*handler.EventInfo{
+				{
+					Kind:   handler.Issue,
+					Number: 130,
+				},
+			},
 		},
 		"issue_comment": {
 			event: &handler.ActionEvent{
@@ -294,7 +333,12 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []int{130},
+			wantVal: []*handler.EventInfo{
+				{
+					Kind:   handler.Issue,
+					Number: 130,
+				},
+			},
 		},
 		"status_match": {
 			event: &handler.ActionEvent{
@@ -310,7 +354,12 @@ func TestProcessEvent(t *testing.T) {
 					"sha": "4bf24cc72f3a62423927a0ac8d70febad7c78e0g"
 				}`)),
 			},
-			wantVal: []int{aladino.DefaultMockPrNum},
+			wantVal: []*handler.EventInfo{
+				{
+					Kind:   handler.PullRequest,
+					Number: aladino.DefaultMockPrNum,
+				},
+			},
 		},
 		"status_no_match": {
 			event: &handler.ActionEvent{
@@ -326,7 +375,7 @@ func TestProcessEvent(t *testing.T) {
 					"sha": "4bf24cc72f3a62423927a0ac8d70febad7c78e0a"
 				}`)),
 			},
-			wantVal: []int{},
+			wantVal: []*handler.EventInfo{},
 		},
 	}
 
