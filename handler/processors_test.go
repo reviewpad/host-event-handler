@@ -159,7 +159,7 @@ func TestProcessEvent(t *testing.T) {
 
 	tests := map[string]struct {
 		event   *handler.ActionEvent
-		wantVal []*handler.EventInfo
+		wantVal []*handler.TargetEntity
 	}{
 		"pull_request": {
 			event: &handler.ActionEvent{
@@ -174,7 +174,7 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []*handler.EventInfo{
+			wantVal: []*handler.TargetEntity{
 				{
 					Kind:   handler.PullRequest,
 					Number: 130,
@@ -194,7 +194,7 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []*handler.EventInfo{
+			wantVal: []*handler.TargetEntity{
 				{
 					Kind:   handler.PullRequest,
 					Number: 130,
@@ -214,7 +214,7 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []*handler.EventInfo{
+			wantVal: []*handler.TargetEntity{
 				{
 					Kind:   handler.PullRequest,
 					Number: 130,
@@ -233,7 +233,7 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []*handler.EventInfo{
+			wantVal: []*handler.TargetEntity{
 				{
 					Kind:   handler.PullRequest,
 					Number: 130,
@@ -246,7 +246,7 @@ func TestProcessEvent(t *testing.T) {
 				Token:      github.String("test-token"),
 				Repository: github.String("reviewpad/reviewpad"),
 			},
-			wantVal: []*handler.EventInfo{
+			wantVal: []*handler.TargetEntity{
 				{
 					Kind:   handler.PullRequest,
 					Number: 130,
@@ -274,7 +274,7 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []*handler.EventInfo{
+			wantVal: []*handler.TargetEntity{
 				{
 					Kind:   handler.PullRequest,
 					Number: aladino.DefaultMockPrNum,
@@ -298,7 +298,7 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []*handler.EventInfo{},
+			wantVal: []*handler.TargetEntity{},
 		},
 		"issues": {
 			event: &handler.ActionEvent{
@@ -313,7 +313,7 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []*handler.EventInfo{
+			wantVal: []*handler.TargetEntity{
 				{
 					Kind:   handler.Issue,
 					Number: 130,
@@ -333,7 +333,7 @@ func TestProcessEvent(t *testing.T) {
 					}
 				}`)),
 			},
-			wantVal: []*handler.EventInfo{
+			wantVal: []*handler.TargetEntity{
 				{
 					Kind:   handler.Issue,
 					Number: 130,
@@ -354,7 +354,7 @@ func TestProcessEvent(t *testing.T) {
 					"sha": "4bf24cc72f3a62423927a0ac8d70febad7c78e0g"
 				}`)),
 			},
-			wantVal: []*handler.EventInfo{
+			wantVal: []*handler.TargetEntity{
 				{
 					Kind:   handler.PullRequest,
 					Number: aladino.DefaultMockPrNum,
@@ -375,7 +375,7 @@ func TestProcessEvent(t *testing.T) {
 					"sha": "4bf24cc72f3a62423927a0ac8d70febad7c78e0a"
 				}`)),
 			},
-			wantVal: []*handler.EventInfo{},
+			wantVal: []*handler.TargetEntity{},
 		},
 	}
 
