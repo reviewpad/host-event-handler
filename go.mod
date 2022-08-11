@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/google/go-github/v45 v45.2.0
 	github.com/jarcoal/httpmock v1.2.0
-	github.com/reviewpad/reviewpad/v3 v3.1.1-0.20220803072158-38393671ef5b
+	github.com/reviewpad/reviewpad/v3 v3.1.1-0.20220810091714-9baf0e9b6f85
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/oauth2 v0.0.0-20220718184931-c8730f7fcb92
 )

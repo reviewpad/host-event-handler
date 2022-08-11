@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/v45/github"
-	"github.com/reviewpad/reviewpad/v3/utils"
+	reviewpad_gh "github.com/reviewpad/reviewpad/v3/codehost/github"
 	"golang.org/x/oauth2"
 )
 
@@ -52,10 +52,11 @@ func processCronEvent(token string, e *ActionEvent) ([]*EventInfo, error) {
 
 	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
 	defer canc()
-	client := newGithubClient(ctx, token)
+
+	ghClient := reviewpad_gh.NewGithubClientFromToken(ctx, token)
 
 	repoParts := strings.SplitN(*e.Repository, "/", 2)
-	prs, err := utils.GetPullRequests(ctx, client, repoParts[0], repoParts[1])
+	prs, err := ghClient.GetPullRequests(ctx, repoParts[0], repoParts[1])
 	if err != nil {
 		return nil, fmt.Errorf("get pull requests: %w", err)
 	}
@@ -152,9 +153,10 @@ func processStatusEvent(token string, e *github.StatusEvent) ([]*EventInfo, erro
 
 	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
 	defer canc()
-	client := newGithubClient(ctx, token)
 
-	prs, err := utils.GetPullRequests(ctx, client, *e.Repo.Owner.Login, *e.Repo.Name)
+	ghClient := reviewpad_gh.NewGithubClientFromToken(ctx, token)
+
+	prs, err := ghClient.GetPullRequests(ctx, *e.Repo.Owner.Login, *e.Repo.Name)
 	if err != nil {
 		return nil, fmt.Errorf("get pull requests: %w", err)
 	}
@@ -183,9 +185,9 @@ func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]*Event
 
 	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
 	defer canc()
-	client := newGithubClient(ctx, token)
+	ghClient := reviewpad_gh.NewGithubClientFromToken(ctx, token)
 
-	prs, err := utils.GetPullRequests(ctx, client, *e.Repo.Owner.Login, *e.Repo.Name)
+	prs, err := ghClient.GetPullRequests(ctx, *e.Repo.Owner.Login, *e.Repo.Name)
 	if err != nil {
 		return nil, fmt.Errorf("get pull requests: %w", err)
 	}
