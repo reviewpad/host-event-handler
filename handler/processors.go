@@ -13,7 +13,6 @@ import (
 
 	"github.com/google/go-github/v45/github"
 	reviewpad_gh "github.com/reviewpad/reviewpad/v3/codehost/github"
-	"golang.org/x/oauth2"
 )
 
 const (
@@ -39,12 +38,6 @@ func ParseEvent(rawEvent string) (*ActionEvent, error) {
 	}
 
 	return event, nil
-}
-
-func newGithubClient(ctx context.Context, token string) *github.Client {
-	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-	tc := oauth2.NewClient(ctx, ts)
-	return github.NewClient(tc)
 }
 
 func processCronEvent(token string, e *ActionEvent) ([]*EventInfo, error) {
