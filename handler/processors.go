@@ -16,14 +16,14 @@ import (
 )
 
 const (
-	PullRequest EventKind = "pull_request"
-	Issue       EventKind = "issue"
+	PullRequest TargetEntityKind = "pull_request"
+	Issue       TargetEntityKind = "issue"
 )
 
-type EventKind string
+type TargetEntityKind string
 
-type EventInfo struct {
-	Kind   EventKind
+type TargetEntity struct {
+	Kind   TargetEntityKind
 	Number int
 }
 
@@ -40,7 +40,7 @@ func ParseEvent(rawEvent string) (*ActionEvent, error) {
 	return event, nil
 }
 
-func processCronEvent(token string, e *ActionEvent) ([]*EventInfo, error) {
+func processCronEvent(token string, e *ActionEvent) ([]*TargetEntity, error) {
 	Log("processing 'schedule' event")
 
 	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
@@ -56,9 +56,9 @@ func processCronEvent(token string, e *ActionEvent) ([]*EventInfo, error) {
 
 	Log("fetched %d prs", len(prs))
 
-	events := make([]*EventInfo, 0)
+	events := make([]*TargetEntity, 0)
 	for _, pr := range prs {
-		events = append(events, &EventInfo{
+		events = append(events, &TargetEntity{
 			Kind:   PullRequest,
 			Number: *pr.Number,
 		})
@@ -69,11 +69,11 @@ func processCronEvent(token string, e *ActionEvent) ([]*EventInfo, error) {
 	return events, nil
 }
 
-func processIssuesEvent(e *github.IssuesEvent) []*EventInfo {
+func processIssuesEvent(e *github.IssuesEvent) []*TargetEntity {
 	Log("processing 'issues' event")
 	Log("found issue %v", *e.Issue.Number)
 
-	return []*EventInfo{
+	return []*TargetEntity{
 		{
 			Kind:   Issue,
 			Number: *e.Issue.Number,
@@ -81,11 +81,11 @@ func processIssuesEvent(e *github.IssuesEvent) []*EventInfo {
 	}
 }
 
-func processIssueCommentEvent(e *github.IssueCommentEvent) []*EventInfo {
+func processIssueCommentEvent(e *github.IssueCommentEvent) []*TargetEntity {
 	Log("processing 'issue_comment' event")
 	Log("found issue %v", *e.Issue.Number)
 
-	return []*EventInfo{
+	return []*TargetEntity{
 		{
 			Kind:   Issue,
 			Number: *e.Issue.Number,
@@ -93,11 +93,11 @@ func processIssueCommentEvent(e *github.IssueCommentEvent) []*EventInfo {
 	}
 }
 
-func processPullRequestEvent(e *github.PullRequestEvent) []*EventInfo {
+func processPullRequestEvent(e *github.PullRequestEvent) []*TargetEntity {
 	Log("processing 'pull_request' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
-	return []*EventInfo{
+	return []*TargetEntity{
 		{
 			Kind:   PullRequest,
 			Number: *e.PullRequest.Number,
@@ -105,11 +105,11 @@ func processPullRequestEvent(e *github.PullRequestEvent) []*EventInfo {
 	}
 }
 
-func processPullRequestReviewEvent(e *github.PullRequestReviewEvent) []*EventInfo {
+func processPullRequestReviewEvent(e *github.PullRequestReviewEvent) []*TargetEntity {
 	Log("processing 'pull_request_review' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
-	return []*EventInfo{
+	return []*TargetEntity{
 		{
 			Kind:   PullRequest,
 			Number: *e.PullRequest.Number,
@@ -117,11 +117,11 @@ func processPullRequestReviewEvent(e *github.PullRequestReviewEvent) []*EventInf
 	}
 }
 
-func processPullRequestReviewCommentEvent(e *github.PullRequestReviewCommentEvent) []*EventInfo {
+func processPullRequestReviewCommentEvent(e *github.PullRequestReviewCommentEvent) []*TargetEntity {
 	Log("processing 'pull_request_review_comment' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
-	return []*EventInfo{
+	return []*TargetEntity{
 		{
 			Kind:   PullRequest,
 			Number: *e.PullRequest.Number,
@@ -129,11 +129,11 @@ func processPullRequestReviewCommentEvent(e *github.PullRequestReviewCommentEven
 	}
 }
 
-func processPullRequestTargetEvent(e *github.PullRequestTargetEvent) []*EventInfo {
+func processPullRequestTargetEvent(e *github.PullRequestTargetEvent) []*TargetEntity {
 	Log("processing 'pull_request_target' event")
 	Log("found pr %v", *e.PullRequest.Number)
 
-	return []*EventInfo{
+	return []*TargetEntity{
 		{
 			Kind:   PullRequest,
 			Number: *e.PullRequest.Number,
@@ -141,7 +141,7 @@ func processPullRequestTargetEvent(e *github.PullRequestTargetEvent) []*EventInf
 	}
 }
 
-func processStatusEvent(token string, e *github.StatusEvent) ([]*EventInfo, error) {
+func processStatusEvent(token string, e *github.StatusEvent) ([]*TargetEntity, error) {
 	Log("processing 'status' event")
 
 	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
@@ -159,7 +159,7 @@ func processStatusEvent(token string, e *github.StatusEvent) ([]*EventInfo, erro
 	for _, pr := range prs {
 		if *pr.Head.SHA == *e.SHA {
 			Log("found pr %v", *pr.Number)
-			return []*EventInfo{
+			return []*TargetEntity{
 				{
 					Kind:   PullRequest,
 					Number: *pr.Number,
@@ -170,10 +170,10 @@ func processStatusEvent(token string, e *github.StatusEvent) ([]*EventInfo, erro
 
 	Log("no pr found with the head sha %v", *e.SHA)
 
-	return []*EventInfo{}, nil
+	return []*TargetEntity{}, nil
 }
 
-func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]*EventInfo, error) {
+func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]*TargetEntity, error) {
 	Log("processing 'workflow_run' event")
 
 	ctx, canc := context.WithTimeout(context.Background(), time.Minute*10)
@@ -190,7 +190,7 @@ func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]*Event
 	for _, pr := range prs {
 		if *pr.Head.SHA == *e.WorkflowRun.HeadSHA {
 			Log("found pr %v", *pr.Number)
-			return []*EventInfo{
+			return []*TargetEntity{
 				{
 					Kind:   PullRequest,
 					Number: *pr.Number,
@@ -201,12 +201,12 @@ func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]*Event
 
 	Log("no pr found with the head sha %v", *e.WorkflowRun.HeadSHA)
 
-	return []*EventInfo{}, nil
+	return []*TargetEntity{}, nil
 }
 
 // reviewpad-an: critical
 // output: the list of pull requests/issues that are affected by the event.
-func ProcessEvent(event *ActionEvent) ([]*EventInfo, error) {
+func ProcessEvent(event *ActionEvent) ([]*TargetEntity, error) {
 	// These events do not have an equivalent in the GitHub webhooks, thus
 	// parsing them with github.ParseWebhook would return an error.
 	// These are the webhook events: https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads
