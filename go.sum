@@ -33,8 +33,8 @@ github.com/migueleliasweb/go-github-mock v0.0.10 h1:VTaNa4eYzkRpnZ7Fqop7Jldgh7vs
 github.com/migueleliasweb/go-github-mock v0.0.10/go.mod h1:mD5w+9J3oBBMLr7uD6owEYlYBAL8tZd+BA7iGjI4EU8=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/reviewpad/reviewpad/v3 v3.1.1-0.20220810091714-9baf0e9b6f85 h1:tkrKsQJ7WKWB2oLcw6yx2HJxztEG8z2LuV/n9U6+LaI=
-github.com/reviewpad/reviewpad/v3 v3.1.1-0.20220810091714-9baf0e9b6f85/go.mod h1:gfQtgFxC3+8ywyvprpQNOkrQU7VZM6LyOttGo6zNo2c=
+github.com/reviewpad/reviewpad/v3 v3.2.0 h1:ds4pwLN0c6LQwuAIzqupFJotPS/C9zS1apfYNoo0ZII=
+github.com/reviewpad/reviewpad/v3 v3.2.0/go.mod h1:gfQtgFxC3+8ywyvprpQNOkrQU7VZM6LyOttGo6zNo2c=
 github.com/shurcooL/githubv4 v0.0.0-20220520033151-0b4e3294ff00 h1:fiFvD4lT0aWjuuAb64LlZ/67v87m+Kc9Qsu5cMFNK0w=
 github.com/shurcooL/githubv4 v0.0.0-20220520033151-0b4e3294ff00/go.mod h1:hAF0iLZy4td2EX+/8Tw+4nodhlMrwN3HupfaXj3zkGo=
 github.com/shurcooL/graphql v0.0.0-20220606043923-3cf50f8a0a29 h1:B1PEwpArrNp4dkQrfxh/abbBAOZBVp0ds+fBEOUOqOc=
