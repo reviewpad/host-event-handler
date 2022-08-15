@@ -90,6 +90,9 @@ func TestProcessEvent_Failure(t *testing.T) {
 							"login": "reviewpad"
 						}
 					},
+                    "pull_request": {
+                        "number": 1
+                    },
 					"workflow_run": {
 						"head_sha": "4bf24cc72f3a62423927a0ac8d70febad7c78e0g"
 					}
@@ -107,6 +110,9 @@ func TestProcessEvent_Failure(t *testing.T) {
 							"login": "reviewpad"
 						}
 					},
+                    "pull_request": {
+                        "number": 1
+                    }
 					"status": {
 						"sha": "4bf24cc72f3a62423927a0ac8d70febad7c78e0g"
 					}
@@ -136,12 +142,28 @@ func TestProcessEvent(t *testing.T) {
 			b, err := json.Marshal([]*github.PullRequest{
 				{
 					Number: github.Int(aladino.DefaultMockPrNum),
+					Base: &github.PullRequestBranch{
+						Repo: &github.Repository{
+							Name: github.String(repo),
+							Owner: &github.User{
+								Login: github.String(owner),
+							},
+						},
+					},
 					Head: &github.PullRequestBranch{
 						SHA: github.String("4bf24cc72f3a62423927a0ac8d70febad7c78e0g"),
 					},
 				},
 				{
 					Number: github.Int(130),
+					Base: &github.PullRequestBranch{
+						Repo: &github.Repository{
+							Name: github.String(repo),
+							Owner: &github.User{
+								Login: github.String(owner),
+							},
+						},
+					},
 					Head: &github.PullRequestBranch{
 						SHA: github.String("4bf24cc72f3a62423927a0ac8d70febad7c78e0k"),
 					},
@@ -168,6 +190,12 @@ func TestProcessEvent(t *testing.T) {
 				EventPayload: buildPayload([]byte(`{
 					"action": "opened",
 					"number": 130,
+					"repository": {
+						"name": "reviewpad",
+						"owner": {
+							"login": "reviewpad"
+						}
+					},
 					"pull_request": {
 						"body": "## Description",
 						"number": 130
@@ -178,6 +206,8 @@ func TestProcessEvent(t *testing.T) {
 				{
 					Kind:   handler.PullRequest,
 					Number: 130,
+					Owner:  owner,
+					Repo:   repo,
 				},
 			},
 		},
@@ -188,6 +218,12 @@ func TestProcessEvent(t *testing.T) {
 				EventPayload: buildPayload([]byte(`{
 					"action": "opened",
 					"number": 130,
+					"repository": {
+						"name": "reviewpad",
+						"owner": {
+							"login": "reviewpad"
+						}
+					},
 					"pull_request": {
 						"body": "## Description",
 						"number": 130
@@ -198,6 +234,8 @@ func TestProcessEvent(t *testing.T) {
 				{
 					Kind:   handler.PullRequest,
 					Number: 130,
+					Owner:  owner,
+					Repo:   repo,
 				},
 			},
 		},
@@ -208,6 +246,12 @@ func TestProcessEvent(t *testing.T) {
 				EventPayload: buildPayload([]byte(`{
 					"action": "opened",
 					"number": 130,
+					"repository": {
+						"name": "reviewpad",
+						"owner": {
+							"login": "reviewpad"
+						}
+					},
 					"pull_request": {
 						"body": "## Description",
 						"number": 130
@@ -218,6 +262,8 @@ func TestProcessEvent(t *testing.T) {
 				{
 					Kind:   handler.PullRequest,
 					Number: 130,
+					Owner:  owner,
+					Repo:   repo,
 				},
 			},
 		},
@@ -227,6 +273,12 @@ func TestProcessEvent(t *testing.T) {
 				Token:     github.String("test-token"),
 				EventPayload: buildPayload([]byte(`{
 					"action": "created",
+					"repository": {
+						"name": "reviewpad",
+						"owner": {
+							"login": "reviewpad"
+						}
+					},
 					"pull_request": {
 						"body": "## Description",
 						"number": 130
@@ -237,6 +289,8 @@ func TestProcessEvent(t *testing.T) {
 				{
 					Kind:   handler.PullRequest,
 					Number: 130,
+					Owner:  owner,
+					Repo:   repo,
 				},
 			},
 		},
@@ -250,10 +304,14 @@ func TestProcessEvent(t *testing.T) {
 				{
 					Kind:   handler.PullRequest,
 					Number: 130,
+					Owner:  owner,
+					Repo:   repo,
 				},
 				{
 					Kind:   handler.PullRequest,
 					Number: aladino.DefaultMockPrNum,
+					Owner:  owner,
+					Repo:   repo,
 				},
 			},
 		},
@@ -278,6 +336,8 @@ func TestProcessEvent(t *testing.T) {
 				{
 					Kind:   handler.PullRequest,
 					Number: aladino.DefaultMockPrNum,
+					Owner:  owner,
+					Repo:   repo,
 				},
 			},
 		},
@@ -307,6 +367,12 @@ func TestProcessEvent(t *testing.T) {
 				EventPayload: buildPayload([]byte(`{
 					"action": "opened",
 					"number": 130,
+					"repository": {
+						"name": "reviewpad",
+						"owner": {
+							"login": "reviewpad"
+						}
+					},
 					"issue": {
 						"body": "## Description",
 						"number": 130
@@ -317,6 +383,8 @@ func TestProcessEvent(t *testing.T) {
 				{
 					Kind:   handler.Issue,
 					Number: 130,
+					Owner:  owner,
+					Repo:   owner,
 				},
 			},
 		},
@@ -327,6 +395,12 @@ func TestProcessEvent(t *testing.T) {
 				EventPayload: buildPayload([]byte(`{
 					"action": "opened",
 					"number": 130,
+					"repository": {
+						"name": "reviewpad",
+						"owner": {
+							"login": "reviewpad"
+						}
+					},
 					"issue": {
 						"body": "## Description",
 						"number": 130
@@ -337,6 +411,8 @@ func TestProcessEvent(t *testing.T) {
 				{
 					Kind:   handler.Issue,
 					Number: 130,
+					Owner:  owner,
+					Repo:   repo,
 				},
 			},
 		},
@@ -351,6 +427,9 @@ func TestProcessEvent(t *testing.T) {
 							"login": "reviewpad"
 						}
 					},
+                    "pull_request": {
+                        "number": 6
+                    },
 					"sha": "4bf24cc72f3a62423927a0ac8d70febad7c78e0g"
 				}`)),
 			},
@@ -358,6 +437,8 @@ func TestProcessEvent(t *testing.T) {
 				{
 					Kind:   handler.PullRequest,
 					Number: aladino.DefaultMockPrNum,
+					Owner:  owner,
+					Repo:   repo,
 				},
 			},
 		},
