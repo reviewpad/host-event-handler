@@ -25,6 +25,8 @@ type TargetEntityKind string
 type TargetEntity struct {
 	Kind   TargetEntityKind
 	Number int
+	Owner  string
+	Repo   string
 }
 
 func ParseEvent(rawEvent string) (*ActionEvent, error) {
@@ -61,6 +63,8 @@ func processCronEvent(token string, e *ActionEvent) ([]*TargetEntity, error) {
 		events = append(events, &TargetEntity{
 			Kind:   PullRequest,
 			Number: *pr.Number,
+			Owner:  *pr.Base.Repo.Owner.Login,
+			Repo:   *pr.Base.Repo.Name,
 		})
 	}
 
@@ -77,6 +81,8 @@ func processIssuesEvent(e *github.IssuesEvent) []*TargetEntity {
 		{
 			Kind:   Issue,
 			Number: *e.Issue.Number,
+			Owner:  *e.Repo.Owner.Login,
+			Repo:   *e.Repo.Name,
 		},
 	}
 }
@@ -89,6 +95,8 @@ func processIssueCommentEvent(e *github.IssueCommentEvent) []*TargetEntity {
 		{
 			Kind:   Issue,
 			Number: *e.Issue.Number,
+			Owner:  *e.Repo.Owner.Login,
+			Repo:   *e.Repo.Name,
 		},
 	}
 }
@@ -101,6 +109,8 @@ func processPullRequestEvent(e *github.PullRequestEvent) []*TargetEntity {
 		{
 			Kind:   PullRequest,
 			Number: *e.PullRequest.Number,
+			Owner:  *e.Repo.Owner.Login,
+			Repo:   *e.Repo.Name,
 		},
 	}
 }
@@ -113,6 +123,8 @@ func processPullRequestReviewEvent(e *github.PullRequestReviewEvent) []*TargetEn
 		{
 			Kind:   PullRequest,
 			Number: *e.PullRequest.Number,
+			Owner:  *e.Repo.Owner.Login,
+			Repo:   *e.Repo.Name,
 		},
 	}
 }
@@ -125,6 +137,8 @@ func processPullRequestReviewCommentEvent(e *github.PullRequestReviewCommentEven
 		{
 			Kind:   PullRequest,
 			Number: *e.PullRequest.Number,
+			Owner:  *e.Repo.Owner.Login,
+			Repo:   *e.Repo.Name,
 		},
 	}
 }
@@ -137,6 +151,8 @@ func processPullRequestTargetEvent(e *github.PullRequestTargetEvent) []*TargetEn
 		{
 			Kind:   PullRequest,
 			Number: *e.PullRequest.Number,
+			Owner:  *e.Repo.Owner.Login,
+			Repo:   *e.Repo.Name,
 		},
 	}
 }
@@ -163,6 +179,8 @@ func processStatusEvent(token string, e *github.StatusEvent) ([]*TargetEntity, e
 				{
 					Kind:   PullRequest,
 					Number: *pr.Number,
+					Owner:  *pr.Base.Repo.Owner.Login,
+					Repo:   *pr.Base.Repo.Name,
 				},
 			}, nil
 		}
@@ -194,6 +212,8 @@ func processWorkflowRunEvent(token string, e *github.WorkflowRunEvent) ([]*Targe
 				{
 					Kind:   PullRequest,
 					Number: *pr.Number,
+					Owner:  *pr.Base.Repo.Owner.Login,
+					Repo:   *pr.Base.Repo.Name,
 				},
 			}, nil
 		}
