@@ -22,6 +22,14 @@ const (
 
 type TargetEntityKind string
 
+func (entityType TargetEntityKind) String() string {
+	switch entityType {
+	case Issue:
+		return "issue"
+	}
+	return "pull"
+}
+
 type TargetEntity struct {
 	Kind   TargetEntityKind
 	Number int
