@@ -1,4 +1,4 @@
-# Host Event Handler
+# Host Event Handler (ARCHIVED - MOVED TO https://github.com/reviewpad/reviewpad)
 
 ## VSCode Configuration
 
